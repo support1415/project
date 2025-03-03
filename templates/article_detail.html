@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
+{% load projectsite_filter %}
 <div class="container my-3">
     <!-- 게시글 -->
     <h2 class="border-bottom py-2">{{ article.title }}</h2>
@@ -13,25 +14,28 @@
                     <div>{{ article.modified_at }}</div>
                 </div>
                 {% endif %}
-                <div class="badge bg-light text-dark p-2">
-                    {{ article.created_at }}
+                <div class="badge bg-light text-dark p-2 text-start">
+                    <div class="mb-2">{{ article.author.username }}</div>
+                    <div>{{ article.created_at }}</div>
                 </div>
             </div>
             <div class="my-3">
                 <a href="javascript:void(0)" data-uri="{% url 'projectsite:article_vote' article.id  %}"
-                   class="recommend btn btn-sm btn-outline-secondary"> 좋아요
+                   class="recommend btn btn-sm btn-outline-secondary"> 👍
                     <span class="badge rounded-pill bg-success">{{article.voter.count}}</span>
                 </a>
+                {% if request.user == comment.author %}
                 <a href="{% url 'projectsite:article_modify' article.id  %}" 
                    class="btn btn-sm btn-outline-secondary">수정</a>
                 <a href="javascript:void(0)" class="delete btn btn-sm btn-outline-secondary"
                    data-uri="{% url 'projectsite:article_delete' article.id  %}">삭제</a>
+                {% endif %}
             </div>
         </div>
     </div>
     <!-- 댓글 -->
-    <h5 class="border-bottom my-3 py-2">{{article.comment_set.count}}개의 댓글</h5>
-    {% for comment in article.comment_set.all %}
+    <h5 class="border-bottom my-3 py-2">{{article.author_comment.count}}개의 댓글</h5>
+    {% for comment in article.author_comment.all %}
     <div class="card my-3">
         <div class="card-body">
             <div class="card-text" style="white-space: pre-line;">{{ comment.content }}</div>
@@ -42,15 +46,47 @@
                     <div>{{ comment.modified_at }}</div>
                 </div>
                 {% endif %}
-                <div class="badge bg-light text-dark p-2">
-                    {{ comment.created_at }}
+                <div class="badge bg-light text-dark p-2 text-start">
+                    <div class="mb-2">{{ comment.author.username }}</div>
+                    <div>{{ comment.created_at }}</div>
                 </div>
             </div>
             <div class="my-3">
+                <a href="javascript:void(0)" data-uri="{% url 'projectsite:comment_vote' comment.id  %}"
+                    class="recommend btn btn-sm btn-outline-secondary"> 👍
+                    <span class="badge rounded-pill bg-success">{{comment.voter.count}}</span>
+                </a>
+                {% if request.user == comment.author %}
                 <a href="{% url 'projectsite:comment_modify' comment.id  %}" 
                    class="btn btn-sm btn-outline-secondary">수정</a>
                 <a href="#" class="delete btn btn-sm btn-outline-secondary "
                    data-uri="{% url 'projectsite:comment_delete' comment.id  %}">삭제</a>
+                {% endif %}
+                {% if comment.author_reply.count > 0 %}
+                    <div class="mt-3">
+                    {% for reply in comment.author_reply.all %}
+                        <a name="reply_{{ reply.id }}"></a>
+                        <div class="reply py-2 text-muted">
+                            <span style="white-space: pre-line;">{{ reply.content }}</span>
+                            <span>
+                                - {{ reply.author }}, {{ reply.created_at }}
+                                {% if reply.modified_at %}
+                                (수정:{{ reply.modified_at }})
+                                {% endif %}
+                            </span>
+                            {% if request.user == reply.author %}
+                            <a href="{% url 'projectsite:reply_modify' reply.id  %}" class="small">수정</a>,
+                            <a href="#" class="small delete"
+                               data-uri="{% url 'projectsite:reply_delete' reply.id  %}">삭제</a>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    </div>
+                    {% endif %}
+                <div>
+                    <a href="{% url 'projectsite:reply_create' comment.id  %}"
+                       class="small"><small>답글 추가</small></a>
+                </div>
             </div>
         </div>
     </div>
@@ -74,7 +110,9 @@
         <!-- 오류표시 End -->
         <div class="mb-3">
             <label for="content" class="form-label">댓글 내용</label>
-            <textarea name="content" id="content" class="form-control" rows="10"></textarea>
+            <textarea {% if not user.is_authenticated %}disabled{% endif %}
+                      name="content" id="content" class="form-control" rows="10"></textarea>
+           
         </div>
         <input type="submit" value="댓글 등록" class="btn btn-primary">
     </form>

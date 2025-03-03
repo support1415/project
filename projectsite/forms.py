@@ -1,11 +1,15 @@
 from django import forms
-from projectsite.models import Article, Comment
+from django_summernote.widgets import SummernoteWidget
+from projectsite.models import Article, Comment, Reply
 
 
 class ArticleForm(forms.ModelForm):
     class Meta:
         model = Article
         fields = ['title', 'content']
+        widgets = {
+            'content': SummernoteWidget(),
+        }
         labels = {
             'title': '제목',
             'content': '내용',
@@ -16,5 +20,13 @@ class CommentForm(forms.ModelForm):
         model = Comment
         fields = ['content']
         labels = {
-            'content': '내용',
+            'content': '댓글내용',
+        }
+
+class ReplyForm(forms.ModelForm):
+    class Meta:
+        model = Reply
+        fields = ['content']
+        labels = {
+            'content': '답글내용'
         }

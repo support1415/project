@@ -1,6 +1,6 @@
-from django.urls import path
+from django.urls import path, include
 
-from .views import base_views, article_views, comment_views
+from .views import base_views, article_views, comment_views, reply_views
 
 app_name = 'projectsite'
 
@@ -27,6 +27,15 @@ urlpatterns = [
     path('comment/delete/<int:comment_id>/',
          comment_views.comment_delete, name='comment_delete'),
 
+    # reply_views.py
+    path('reply/create/<int:comment_id>/', 
+         reply_views.reply_create, name='reply_create'),
+    path('reply/modify/<int:reply_id>/', 
+         reply_views.reply_modify, name='reply_modify'),
+    path('reply/delete/<int:reply_id>/', 
+         reply_views.reply_delete, name='reply_delete'),
+
     path('article/vote/<int:article_id>/', article_views.article_vote, name='article_vote'),
+    path('comment/vote/<int:comment_id>/', comment_views.comment_vote, name='comment_vote'),
    
 ]
